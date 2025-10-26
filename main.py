@@ -1,6 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Header, Request
-import ollama
-import asyncio
+from fastapi import FastAPI, Request
 import os
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
@@ -12,41 +10,33 @@ from vector import VectorStoreService
 
 load_dotenv()
 
-API_KEY_CREDITS = {os.getenv("API_KEY"): 5}
+MODEL = os.getenv("MODEL")
+CSV_PATH = os.getenv("CSV_PATH")
+DB_PATH = os.getenv("DB_PATH")
+MODEL_EMBEDDING = os.getenv("MODEL_EMBEDDING")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME")
+SEARCH_TYPE = os.getenv("SEARCH_TYPE")
+SEARCH_KWARGS_K = os.getenv("SEARCH_KWARGS_K")
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
-vector_service = VectorStoreService()
-chat_service = ChatService()
+vector_service = VectorStoreService(
+    csv_path=CSV_PATH,
+    db_path=DB_PATH,
+    model_embedding_name=MODEL_EMBEDDING,
+    collection_name=COLLECTION_NAME,
+    search_type=SEARCH_TYPE,
+    search_kwargs={"k": int(SEARCH_KWARGS_K)},
+)
+chat_service = ChatService(model_name=MODEL)
 
-
-def verify_api_key(x_api_key: str = Header(None)):
-    credits = API_KEY_CREDITS.get(x_api_key, 0)
-    if credits <= 0:
-        raise HTTPException(status_code=401, detail="Invalid API key, or no credits")
-
-    return x_api_key
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "title": "Home"})
 
-@app.post("/generate")
-async def generate(prompt: str, x_api_key: str = Depends(verify_api_key)):
-    API_KEY_CREDITS[x_api_key] -= 1
-
-    loop = asyncio.get_event_loop()
-
-    response = await loop.run_in_executor(
-        None,
-        ollama.chat,
-        "gpt-oss:20b",  # model
-        [{"role": "user", "content": prompt}]  # messages
-    )
-
-    return {"response": response["message"]["content"]}
 
 @app.get("/chat")
 async def chat(prompt: str):

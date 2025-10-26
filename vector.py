@@ -5,15 +5,16 @@ from langchain_core.documents import Document
 import os
 import pandas as pd
 
+
 class VectorStoreService:
     def __init__(
             self,
-            csv_path: str = "realistic_restaurant_reviews.csv",
-            db_path: str = "./chrome_db",
-            model_embedding_name: str = "mxbai-embed-large:latest",
-            collection_name: str = "restaurant_reviews",
-            search_type: str = "mmr",
-            search_kwargs: dict = {"k": 10},
+            csv_path: str,
+            db_path: str,
+            model_embedding_name: str,
+            collection_name: str,
+            search_type: str,
+            search_kwargs: dict,
     ):
         self.csv_path = csv_path
         self.db_path = db_path

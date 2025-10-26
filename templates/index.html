@@ -4,16 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+
+        #response {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .msg {
+            max-width: 75%;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        .left {
+            background: #e6e6e6;
+            align-self: flex-start;
+        }
+
+        .right {
+            background: #cfe9ff;
+            align-self: flex-end;
+        }
+
+        textarea {
+            width: 100%;
+            height: 60px;
+            margin: 8px 0;
+        }
+
+        button {
+            padding: 8px 14px;
+        }
+    </style>
 </head>
 <body>
-    <div id="chat"></div>
 
-    <script>
-        const eventSource = new EventSource("/chat?prompt=Halo, kenalkan dirimu!")
+<div id="response"></div>
+
+<form id="chat-form">
+    <label for="question">Question</label>
+    <textarea id="question"></textarea>
+    <button type="submit" id="submit-btn">Send</button>
+</form>
+
+<script>
+    const responseDiv = document.getElementById("response");
+    const chatForm = document.getElementById("chat-form");
+    const submitBtn = document.getElementById("submit-btn");
+    const question = document.getElementById("question");
+
+    chatForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        submitBtn.disabled = true;
+
+        // user bubble (left)
+        const userMsg = document.createElement("p");
+        userMsg.className = "msg left";
+        userMsg.innerText = question.value;
+        responseDiv.appendChild(userMsg);
+
+        // count answer index
+        const index = document.querySelectorAll('#response .right').length + 1;
+
+        // bot bubble (right)
+        const botMsg = document.createElement("p");
+        botMsg.className = "msg right";
+        botMsg.id = "answer-" + index;
+        botMsg.innerText = "";
+        responseDiv.appendChild(botMsg);
+
+        const eventSource = new EventSource(`/chat?prompt=${question.value}`);
+
         eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data)
-            document.getElementById("chat").innerHTML += data.token
-        }
-    </script>
+            if (event.data === "[DONE]") {
+                eventSource.close();
+                submitBtn.disabled = false;
+                question.value = "";
+                return;
+            }
+
+            const data = JSON.parse(event.data);
+            document.getElementById("answer-" + index).innerText += data.token;
+        };
+    });
+</script>
+
 </body>
 </html>
