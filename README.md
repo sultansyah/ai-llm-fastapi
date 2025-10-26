@@ -1,4 +1,4 @@
-# api-ai-llm-fastapi-ollama
+# ai-llm-fastapi
 
 This project is an AI-powered chatbot application that uses FastAPI, Ollama, LangChain, and ChromaDB for semantic search and question answering. It processes customer reviews stored in a CSV file using vector embeddings and provides context-aware responses through an LLM.
 
