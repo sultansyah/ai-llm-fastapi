@@ -12,3 +12,7 @@ __pycache__/
 
 # Document
 *.pdf
+
+*.bin
+*.sqlite3
+*.csv
