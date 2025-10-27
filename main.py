@@ -41,7 +41,6 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "title": "Home"})
 
 def save_to_memory(content: str):
-    print("save_to_memory = ", content)
     short_memory.append("assistant", content)
 
 @app.get("/chat")
@@ -49,8 +48,6 @@ async def chat(prompt: str):
     short_memory.append("user", prompt)
     
     final_prompt = short_memory.build_prompt(MAX_MEMORY)
-    
-    print("final_prompt = ", final_prompt)
     
     reviews = vector_service.query(prompt)
     return StreamingResponse(chat_service.streaming(reviews, final_prompt, save_to_memory), media_type="text/event-stream")
