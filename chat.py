@@ -2,6 +2,7 @@ from langchain_ollama.llms import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 import asyncio
 import json
+from typing import Callable
 
 
 class ChatService:
@@ -37,8 +38,11 @@ Provide a short, accurate answer that directly addresses the user’s question u
         self.prompt = ChatPromptTemplate.from_template(self.template)
         self.chain = self.prompt | self.model
 
-    async def streaming(self, reviews: str, question: str):
+    async def streaming(self, reviews: str, question: str, func_save_memory: Callable[[str], None]):
         """streaming SSE Response"""
+        
+        full_response = ""
+        
         for chunk in self.chain.stream({
             "reviews": reviews,
             "question": question,
@@ -46,9 +50,14 @@ Provide a short, accurate answer that directly addresses the user’s question u
             text = str(chunk)
             if not text:
                 continue
+            
+            full_response += text
 
             yield f"data: {json.dumps({'token': text})}\n\n"
             await asyncio.sleep(0)
 
+        # save to memory
+        func_save_memory(full_response)
+        
         # send end signal
         yield "data: [DONE]\n\n"
