@@ -74,12 +74,14 @@
         const botMsg = document.createElement("p");
         botMsg.className = "msg right";
         botMsg.id = "answer-" + index;
-        botMsg.innerText = "";
+        botMsg.innerText = "Loading...";
         responseDiv.appendChild(botMsg);
 
         const eventSource = new EventSource(`/chat?prompt=${question.value}`);
 
         eventSource.onmessage = (event) => {
+            const answerElement = document.getElementById("answer-" + index);
+
             if (event.data === "[DONE]") {
                 eventSource.close();
                 submitBtn.disabled = false;
@@ -88,7 +90,12 @@
             }
 
             const data = JSON.parse(event.data);
-            document.getElementById("answer-" + index).innerText += data.token;
+            
+            // jika ada teks loading, hapus dul
+            if (answerElement.innerText.includes('Loading...')) {
+                answerElement.innerText = ""
+            }
+            answerElement.innerText += data.token;
         };
     });
 </script>

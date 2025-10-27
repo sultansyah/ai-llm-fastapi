@@ -12,6 +12,8 @@ class ShortMemoryService:
             "role": role,
             "content": content
         })
+        
+        print("jumlah di memory = ", len(self.history))
     
     def build_prompt(self, number):
         result = ""
